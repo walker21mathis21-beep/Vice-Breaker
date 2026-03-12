@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0A0A0A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Vice Breaker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- SPLASH OVERLAY -->
+  <div id="splash-overlay">
+    <div class="splash-content">
+      <div class="splash-icon">&#9889;</div>
+      <div class="splash-title">Vice Breaker</div>
+      <div class="splash-subtitle">Break free. Stay strong.</div>
+    </div>
+  </div>
+
+  <div id="app">
+
+    <!-- ONBOARDING: Welcome -->
+    <section id="onboarding-welcome" class="screen">
+      <div class="onboarding-container">
+        <div class="onboarding-hero">
+          <div class="hero-icon">&#9889;</div>
+          <h1>Vice Breaker</h1>
+          <p class="subtitle">Your personal recovery companion</p>
+        </div>
+        <div class="feature-list">
+          <div class="feature-item"><span class="feature-icon">&#9200;</span><div><strong>Track Your Streak</strong><p>Watch your progress grow in real-time</p></div></div>
+          <div class="feature-item"><span class="feature-icon">&#127793;</span><div><strong>Grow Your Garden</strong><p>Earn prestige tiers and badges</p></div></div>
+          <div class="feature-item"><span class="feature-icon">&#128211;</span><div><strong>Journal & Reflect</strong><p>Log moods, triggers, and insights</p></div></div>
+          <div class="feature-item"><span class="feature-icon">&#128168;</span><div><strong>Panic Support</strong><p>Breathing exercises and coping tools</p></div></div>
+        </div>
+        <button class="btn btn-primary btn-lg btn-full" data-action="start-onboarding">Get Started</button>
+      </div>
+    </section>
+
+    <!-- ONBOARDING: Pick Vices -->
+    <section id="onboarding-pick-vices" class="screen">
+      <div class="onboarding-container">
+        <div class="onboarding-header">
+          <h2>What are you quitting?</h2>
+          <p class="subtitle">Type what you want to quit</p>
+        </div>
+        <div id="vice-tags" class="vice-tags"></div>
+        <div class="vice-input-wrapper">
+          <input type="text" id="vice-text-input" class="input" placeholder="e.g. Smoking, Vaping, Alcohol..." autocomplete="off">
+          <button class="btn btn-outline btn-sm mt-sm btn-full" id="btn-add-vice" data-action="add-vice">+ Add Another</button>
+        </div>
+        <div class="onboarding-actions">
+          <button class="btn btn-primary btn-lg btn-full" id="btn-vices-continue" disabled data-action="vices-continue">Continue</button>
+          <button class="btn btn-ghost" data-action="vices-skip">Skip, you can always change your mind</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ONBOARDING: Quit Date -->
+    <section id="onboarding-quit-date" class="screen">
+      <div class="onboarding-container">
+        <div class="onboarding-header">
+          <h2>When did you quit?</h2>
+          <p class="subtitle">Set your quit date for each vice</p>
+        </div>
+        <div id="quit-date-list"></div>
+        <div class="onboarding-actions">
+          <button class="btn btn-primary btn-lg btn-full" data-action="quit-date-continue">Continue</button>
+          <button class="btn btn-ghost" data-action="quit-date-back">&larr; Go Back</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ONBOARDING: Ready -->
+    <section id="onboarding-ready" class="screen">
+      <div class="onboarding-container center-content">
+        <div class="ready-icon">&#127793;</div>
+        <h2>You're ready!</h2>
+        <p class="subtitle">Your garden awaits. Every day clean is a day of growth.</p>
+        <div class="info-cards">
+          <div class="card"><span>&#9200;</span><strong>Streak Tracking</strong><p>Real-time counter of your progress</p></div>
+          <div class="card"><span>&#127795;</span><strong>Garden Growth</strong><p>Watch your garden evolve each month</p></div>
+          <div class="card"><span>&#128168;</span><strong>Panic Button</strong><p>Instant support when cravings hit</p></div>
+        </div>
+        <button class="btn btn-primary btn-lg btn-full" data-action="complete-onboarding">Plant My Seed</button>
+      </div>
+    </section>
+
+    <!-- MAIN APP -->
+    <div id="main-app" class="screen">
+      <main id="tab-content">
+
+        <!-- TAB: Home -->
+        <section id="tab-home" class="tab-panel"></section>
+
+        <!-- TAB: Garden -->
+        <section id="tab-garden" class="tab-panel"></section>
+
+        <!-- TAB: Journal -->
+        <section id="tab-journal" class="tab-panel"></section>
+
+        <!-- TAB: Journal Insights -->
+        <section id="tab-journal-insights" class="tab-panel"></section>
+
+        <!-- TAB: Settings -->
+        <section id="tab-settings" class="tab-panel"></section>
+
+      </main>
+
+      <!-- Tab Bar -->
+      <nav id="tab-bar" role="tablist">
+        <button data-tab="home" role="tab" class="tab-btn active">
+          <span class="tab-icon">&#127968;</span>
+          <span class="tab-label">Home</span>
+        </button>
+        <button data-tab="garden" role="tab" class="tab-btn">
+          <span class="tab-icon">&#127793;</span>
+          <span class="tab-label">Garden</span>
+        </button>
+        <button data-tab="journal" role="tab" class="tab-btn">
+          <span class="tab-icon">&#128211;</span>
+          <span class="tab-label">Journal</span>
+        </button>
+        <button data-tab="settings" role="tab" class="tab-btn">
+          <span class="tab-icon">&#9881;&#65039;</span>
+          <span class="tab-label">Settings</span>
+        </button>
+      </nav>
+
+      <!-- Top-right buttons -->
+      <button id="panic-fab" aria-label="Panic button">&#128168;</button>
+      <button id="settings-fab" aria-label="Settings">&#9881;&#65039;</button>
+    </div>
+
+    <!-- PANIC MODAL -->
+    <div id="panic-modal" class="modal">
+      <div class="modal-content">
+        <section id="panic-menu" class="panic-screen"></section>
+        <section id="panic-breathe" class="panic-screen"></section>
+        <section id="panic-coping" class="panic-screen"></section>
+        <section id="panic-quotes" class="panic-screen"></section>
+        <section id="panic-history" class="panic-screen"></section>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -367,6 +367,137 @@ function getPrestigeTier(months) {
   const m = Math.max(1, Math.min(months, PRESTIGE_TIERS.length));
   return PRESTIGE_TIERS[m-1];
 }
+// First 30 days: daily growth from seed to full tree
+// Each entry: [emoji, size] — 30 steps of gradual growth
+const FIRST_MONTH_GROWTH = [
+  ['\u{1F331}', 80],  // Day 1 - tiny seed
+  ['\u{1F331}', 96],  // Day 2
+  ['\u{1F331}', 102], // Day 3
+  ['\u{1F331}', 108], // Day 4
+  ['\u{1F331}', 114], // Day 5
+  ['\u{1F331}', 120], // Day 6
+  ['\u{1F331}', 126], // Day 7 - week 1 seedling
+  ['\u{1F33F}', 132], // Day 8 - sprout emerges
+  ['\u{1F33F}', 138], // Day 9
+  ['\u{1F33F}', 144], // Day 10
+  ['\u{1F33F}', 150], // Day 11
+  ['\u{1F33F}', 156], // Day 12
+  ['\u{1F33F}', 160], // Day 13
+  ['\u{1F33F}', 164], // Day 14 - two weeks
+  ['\u{1F33A}', 168], // Day 15 - first bloom
+  ['\u{1F33A}', 172], // Day 16
+  ['\u{1F33A}', 176], // Day 17
+  ['\u{1F33A}', 180], // Day 18
+  ['\u{1F33A}', 184], // Day 19
+  ['\u{1F33A}', 188], // Day 20
+  ['\u{1F33A}', 192], // Day 21 - three weeks
+  ['\u{1F333}', 196], // Day 22 - becoming a tree
+  ['\u{1F333}', 202], // Day 23
+  ['\u{1F333}', 208], // Day 24
+  ['\u{1F333}', 214], // Day 25
+  ['\u{1F333}', 220], // Day 26
+  ['\u{1F333}', 226], // Day 27
+  ['\u{1F333}', 232], // Day 28
+  ['\u{1F333}', 238], // Day 29
+  ['\u{1F333}', 244], // Day 30 - full tree!
+];
+
+// After month 1: tree emojis for each tier transition
+const TIER_EMOJIS = [
+  '\u{1F333}',           // Month 1: Seedling → basic tree
+  '\u{1F333}\u{1F342}',  // Month 2: Bronze Garden — bronze leaves
+  '\u{1F332}',           // Month 3: Iron Grove — evergreen
+  '\u{1F332}\u2728',     // Month 4: Silver Bloom — sparkle
+  '\u{1F334}',           // Month 5: Emerald Canopy — palm
+  '\u{1F334}\u{1F4A7}',  // Month 6: Sapphire Oasis — water drops
+  '\u{1F339}',           // Month 7: Ruby Sanctuary — rose
+  '\u{1F33A}',           // Month 8: Amethyst Grove — hibiscus
+  '\u{1F33B}',           // Month 9: Gold Garden — sunflower
+  '\u{1F333}\u{1F4AB}',  // Month 10: Platinum Forest
+  '\u{1F48E}',           // Month 11: Diamond Realm
+  '\u{1F5A4}',           // Month 12: Obsidian Crown
+  '\u2B50',              // Month 13: Celestial Dawn
+  '\u{1F30C}',           // Month 14: Aurora Borealis
+  '\u2600\uFE0F',        // Month 15: Solar Flare
+  '\u{1FA90}',           // Month 16: Nebula Garden
+  '\u{1F311}',           // Month 17: Void Blossom
+  '\u{1F319}',           // Month 18: Lunar Sanctuary
+  '\u{1F525}',           // Month 19: Phoenix Grove
+  '\u{1F52E}',           // Month 20: Crystal Infinity
+  '\u{1F451}',           // Month 21: Shadow Crown
+  '\u{1F4A5}',           // Month 22: Supernova
+  '\u{1F338}',           // Month 23: Eternal Bloom
+  '\u{1F3C6}',           // Month 24: Mythic Realm
+];
+
+function getPlantDisplay(hoursClean) {
+  const daysClean = hoursClean / 24; // fractional days
+
+  if (daysClean < 0.01) return { emoji: '\u{1F331}', size: 60, tierIndex: 0, progress: 0 };
+
+  // First 30 days: daily incremental growth (use fractional index for smooth progress)
+  if (daysClean <= 30) {
+    const idx = Math.min(Math.floor(Math.max(daysClean - 0.01, 0)), 29);
+    const [emoji, size] = FIRST_MONTH_GROWTH[idx];
+    // Interpolate size between current and next step for smoother growth
+    const nextIdx = Math.min(idx + 1, 29);
+    const frac = daysClean - Math.floor(daysClean);
+    const interpSize = Math.round(size + (FIRST_MONTH_GROWTH[nextIdx][1] - size) * frac);
+    return { emoji, size: interpSize, tierIndex: 0, progress: daysClean / 30 };
+  }
+
+  // After month 1: full tree that transitions between tier emojis
+  const monthsClean = Math.floor((daysClean - 1) / 30);
+  const tierIdx = Math.min(monthsClean, PRESTIGE_TIERS.length - 1);
+  const daysIntoMonth = ((daysClean - 1) % 30);
+  const monthProgress = daysIntoMonth / 30;
+
+  const emoji = TIER_EMOJIS[tierIdx] || '\u{1F333}';
+  const size = 200 + Math.round(monthProgress * 20);
+
+  return { emoji, size, tierIndex: tierIdx, progress: monthProgress };
+}
+
+function getNextChangeInfo(hoursClean) {
+  const daysClean = hoursClean / 24;
+
+  if (daysClean < 1) {
+    const hoursLeft = Math.ceil(24 - hoursClean);
+    if (hoursLeft <= 0) return '8 days until: Your seedling sprouts!';
+    return `${hoursLeft} hour${hoursLeft>1?'s':''} until: Day 1 growth!`;
+  }
+
+  if (daysClean < 30) {
+    const wholeDays = Math.floor(daysClean);
+    const dayMilestones = [
+      { day: 8, label: 'Your seedling sprouts!' },
+      { day: 15, label: 'Your first bloom appears!' },
+      { day: 22, label: 'Your tree takes shape!' },
+      { day: 30, label: 'Full tree achieved!' },
+    ];
+    for (const ms of dayMilestones) {
+      if (wholeDays < ms.day) {
+        const daysLeft = ms.day - wholeDays;
+        return `${daysLeft} day${daysLeft>1?'s':''} until: ${ms.label}`;
+      }
+    }
+    return 'Your tree grows a little each day!';
+  }
+
+  // After month 1: show next tier transition
+  const currentMonth = Math.floor((daysClean - 1) / 30);
+  const daysIntoMonth = ((daysClean - 1) % 30);
+  const daysLeft = Math.ceil(30 - daysIntoMonth);
+  const nextTierIdx = Math.min(currentMonth + 1, PRESTIGE_TIERS.length - 1);
+  const nextTier = PRESTIGE_TIERS[nextTierIdx];
+
+  if (currentMonth >= PRESTIGE_TIERS.length - 1) {
+    return 'You have reached Mythic Realm \u2014 the ultimate tier!';
+  }
+  return `${daysLeft} day${daysLeft>1?'s':''} until: ${nextTier.name}`;
+}
+
+// Legacy helpers kept for garden tab
 function getGrowthEmoji(stage) { return ['\u{1F331}','\u{1F33F}','\u{1F33A}','\u{1F333}'][stage-1] || '\u{1F331}'; }
 function getGrowthSize(stage) { return [80, 100, 130, 160][stage-1] || 80; }
 
@@ -534,7 +665,7 @@ function renderHome() {
   const daysClean = getDaysClean(vice);
   const quote = getDailyQuote();
 
-  let html = `<div class="header-row"><h3>Vice Breaker</h3></div>`;
+  let html = `<div class="header-row" style="margin-bottom:4px"><h3>Vice Breaker</h3></div>`;
 
   // Vice selector
   if (vices.length > 1) {
@@ -547,16 +678,26 @@ function renderHome() {
   }
 
   if (hasStarted) {
-    // Live counter
-    html += `<div class="counter-container">
-      <div class="counter-digits">
-        <div class="counter-unit"><div class="value" id="counter-days" style="color:${config?.color||'var(--primary)'}">0</div><div class="label">Days</div></div>
-        <div class="counter-sep">:</div>
-        <div class="counter-unit"><div class="value" id="counter-hours">00</div><div class="label">Hrs</div></div>
-        <div class="counter-sep">:</div>
-        <div class="counter-unit"><div class="value" id="counter-minutes">00</div><div class="label">Min</div></div>
-        <div class="counter-sep">:</div>
-        <div class="counter-unit"><div class="value" id="counter-seconds">00</div><div class="label">Sec</div></div>
+    // Growth plant above timer
+    const plant = getPlantDisplay(hoursClean);
+    const monthsClean = Math.max(1, Math.ceil(Math.max(hoursClean / 24, 0.01) / 30));
+    const tier = getPrestigeTier(monthsClean);
+    const nextChange = getNextChangeInfo(hoursClean);
+    html += `<div class="home-main-section"><div class="home-plant">
+      <div class="home-plant-visual" style="font-size:${plant.size}px;text-shadow:0 0 50px ${tier.color}">${plant.emoji}</div>
+      <div class="home-plant-label" style="color:${tier.color}">${tier.name}</div>
+      <div class="home-plant-desc">${tier.description}</div>
+      <div class="home-plant-next">${nextChange}</div>
+      <div class="counter-container">
+        <div class="counter-digits">
+          <div class="counter-unit"><div class="value" id="counter-days">0</div><div class="label">Days</div></div>
+          <div class="counter-sep">:</div>
+          <div class="counter-unit"><div class="value" id="counter-hours">00</div><div class="label">Hrs</div></div>
+          <div class="counter-sep">:</div>
+          <div class="counter-unit"><div class="value" id="counter-minutes">00</div><div class="label">Min</div></div>
+          <div class="counter-sep">:</div>
+          <div class="counter-unit"><div class="value" id="counter-seconds">00</div><div class="label">Sec</div></div>
+        </div>
       </div>
     </div>`;
 
@@ -572,22 +713,8 @@ function renderHome() {
       html += `<div class="savings-card"><div class="savings-amount">$${totalSaved.toFixed(2)}</div><div class="savings-label">Money saved</div></div>`;
     }
 
-    // Health timeline
-    if (config?.healthMilestones?.length) {
-      html += `<div class="timeline"><div class="timeline-title">Health Timeline</div>`;
-      config.healthMilestones.forEach(ms => {
-        const achieved = hoursClean >= ms.hoursAfterQuit;
-        html += `<div class="timeline-item">
-          <div class="timeline-dot ${achieved?'achieved':'pending'}"></div>
-          <div class="timeline-content">
-            <div class="title">${ms.title}</div>
-            <div class="desc">${ms.description}</div>
-            <div class="time-label">${achieved?'\u2705 Achieved':formatHoursLabel(ms.hoursAfterQuit)}</div>
-          </div>
-        </div>`;
-      });
-      html += `</div>`;
-    }
+    html += `</div>`; // close home-main-section
+
   } else {
     html += `<div class="start-container">
       <div class="start-icon-wrap">\u23F1\uFE0F</div>
